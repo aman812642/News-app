@@ -7,15 +7,25 @@ function Newsapp() {
   const category = ["All", "Sports", "Politics", "Entertainment", "Health", "Fitness"];
   const [data, setData] = useState([]);
   const [activeCategory, setActiveCategory] = useState(0);
-  const API_KEY = "5a8445a9bdce4de1b68f851026ac4e7f";
+  const [loading, setLoading] = useState(true);
+  const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
 
   const getData = async () => {
-    const response = await fetch(
-      `https://newsapi.org/v2/everything?q=${input}&apiKey=${API_KEY}`
-    );
-    const jsonData = await response.json();
-    const news = jsonData.articles;
-    setData(news);
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `https://newsapi.org/v2/everything?q=${input}&apiKey=${API_KEY}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch news");
+
+      const jsonData = await response.json();
+      setData(jsonData.articles || []);
+    } catch (error) {
+      console.error("Error fetching news:", error);
+      setData([]); // Ensure UI doesn't break on error
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -48,12 +58,13 @@ function Newsapp() {
         </div>
       </nav>
 
+      {/* Categories */}
       <div className="no-scrollbar flex gap-3 lg:gap-5 items-center justify-center mt-5 overflow-auto pl-10 lg:pl-1 border-b pb-3">
         {category.map((elem, index) => (
           <button
             key={index}
-            onClick={(e) => {
-              setInput(e.target.innerText);
+            onClick={() => {
+              setInput(elem);
               setActiveCategory(index);
             }}
             className={`px-3 lg:px-4 py-2 text-black border border-red rounded-full lg:hover:bg-red-300 
@@ -64,17 +75,24 @@ function Newsapp() {
         ))}
       </div>
 
-
+      {/* News Section Title */}
       <div>
         <h1 className="text-xl font-bold text-center underline mt-2">
-          {input === "india" || input === "All" ? "All latest news" : `All latest news related to ${input}`}
+          {input === "india" || input === "All"
+            ? "All latest news"
+            : `All latest news related to ${input}`}
         </h1>
       </div>
 
-      <div className={`${data.length === 0 ? "text-center mt-10 font-bold" : "flex flex-wrap px-10 gap-15 mt-10"}`}>
-        {data.length === 0 ? "Please wait loading latest news..." : data.map((elem, index) => (
-          <Card key={index} id={index} values={data} />
-        ))}
+      {/* News Cards or Loading Message */}
+      <div className={`mt-10 ${loading ? "text-center font-bold" : "flex flex-wrap px-10 gap-15"}`}>
+        {loading ? (
+          <h2 className="text-xl font-semibold">Please wait, loading latest news...</h2>
+        ) : data.length > 0 ? (
+          data.map((elem, index) => <Card key={index} id={index} values={data} />)
+        ) : (
+          <h2 className="text-xl font-semibold text-red-500">No news available. Try another category.</h2>
+        )}
       </div>
     </div>
   );
