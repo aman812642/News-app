@@ -8,7 +8,7 @@ function Newsapp() {
   const [data, setData] = useState([]);
   const [activeCategory, setActiveCategory] = useState(0);
   const [loading, setLoading] = useState(true);
-  const API_KEY = import.meta.env.VITE_NEWS_API_KEY;
+  const API_KEY =5a8445a9bdce4de1b68f851026ac4e7f;
 
   const getData = async () => {
     setLoading(true);
